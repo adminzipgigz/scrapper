@@ -1,11 +1,12 @@
 import csv
+from os import name
 from bs4 import BeautifulSoup
 import requests
 import pandas as pd
 
-def extract(postion,location,page):
-    source = 'https://in.indeed.com/jobs?q={}&l={}&start={}'
-    url = source.format(postion,location,page)
+def extract(postion,page):
+    source = 'https://in.indeed.com/jobs?q={}&start={}'
+    url = source.format(postion,page)
     response = requests.get(url)
     print(response)
     soup = BeautifulSoup(response.content, 'html.parser')
@@ -25,21 +26,26 @@ def transform(soup):
             salary ='Not Specified'
 
         job ={
-            'title' : title,
-            'company' : company,
-            'location' : location,
-            'salary' : salary
+            'Title' : title,
+            'Company' : company,
+            'Location' : location,
+            'Salary' : salary
         }
         jobListing.append(job)
     return
 
-jobListing = []
-for i in range(0,40,10):
-    c = extract('software engineer', 'Bengaluru',i)
-    transform(c)
+with open('skills.txt') as file:
+    for skill in file:
+        jobListing = []
+        for i in range(0,40,10):
+            c = extract(skill,i)
+            transform(c)
 
-print(len(jobListing))
+        print(len(jobListing))
 
-df = pd.DataFrame(jobListing)
-print(df.head())
-df.to_csv('jobs.csv')
+        df = pd.DataFrame(jobListing)
+        print(df.head())
+        name = skill.strip()
+        df.to_csv(f'{name}.csv')
+
+file.close()
